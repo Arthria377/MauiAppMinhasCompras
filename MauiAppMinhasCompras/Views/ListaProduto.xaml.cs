@@ -1,5 +1,6 @@
 using MauiAppMinhasCompras.Models;
 using System.Collections.ObjectModel;
+using System.Security.Cryptography;
 
 namespace MauiAppMinhasCompras.Views;
 
@@ -17,12 +18,18 @@ public partial class ListaProduto : ContentPage
 
     protected async override void OnAppearing()
     {
-        // Quando a tela aparece, os produtos são carregados do banco de dados
-        var produtos = await App.Db.GetAll(); // Obter todos os produtos do banco
+        try
+        {
+            lista.Clear();
 
-        // Adiciona os produtos na ObservableCollection, que automaticamente atualiza a interface
-        lista.Clear(); // Limpa a lista antes de adicionar os novos produtos
-        produtos.ForEach(i => lista.Add(i)); // Adiciona os produtos na lista
+            List<Produto> tmp = await App.Db.GetAll();
+
+            tmp.ForEach(i => lista.Add(i));
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
+        }
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)
@@ -39,7 +46,6 @@ public partial class ListaProduto : ContentPage
 
 		}
     }
-
 
     private async void txt_search_SearchButtonPressed(object sender, EventArgs e)
     {
@@ -93,10 +99,6 @@ public partial class ListaProduto : ContentPage
         }
     }
 
-
-
-
-
     private void ToolbarItem_Clicked_1(object sender, EventArgs e)
     {
 		double soma = lista.Sum(i => i.Total);
@@ -108,45 +110,48 @@ public partial class ListaProduto : ContentPage
 
     private async void MenuItem_Clicked(object sender, EventArgs e)
     {
-
         try
         {
-            // Obter o produto da célula clicada
-            var menuItem = (MenuItem)sender;
-            var produto = (Produto)menuItem.BindingContext;
+            MenuItem selecionado = sender as MenuItem;
+            Produto p = selecionado.BindingContext as Produto;
 
-            // Excluir o produto do banco de dados
-            var resultado = await App.Db.Delete(produto.Id);
+            bool confirm = await DisplayAlert("Tem certeza?", "Remover produto?", "Sim", "Não");
 
-            // Verificar se a exclusão foi bem-sucedida
-            if (resultado > 0)
+            if (confirm)
             {
-                // Obter todos os produtos restantes
-                var produtosRestantes = await App.Db.GetAll();
+                await App.Db.Delete(p.Id);
+                lista.Remove(p);
 
-                // Se a lista de produtos estiver vazia, reiniciar o contador de auto incremento
-                if (produtosRestantes.Count == 0)
+                // Se todos os produtos forem removidos, resetar a contagem do ID
+                if (lista.Count == 0)
                 {
-                    await App.Db.ResetAutoIncrement();  // Resetar o contador para 1
+                    await App.Db.ResetAutoIncrement();
                 }
-
-                // Atualizar a lista de exibição
-                lista.Clear();
-                produtosRestantes.ForEach(i => lista.Add(i));
-
-                // Exibir um alerta com o produto removido
-                await DisplayAlert("Produto Removido", $"O produto {produto.Descricao} foi removido.", "OK");
-            }
-            else
-            {
-                await DisplayAlert("Erro", "Não foi possível excluir o produto.", "OK");
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Erro", ex.Message, "OK");
+            await DisplayAlert("Ops", ex.Message, "Ok");
         }
 
     }
 
+
+
+    private void lst_produtos_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+    {
+        try
+        {
+            Produto p = e.SelectedItem as Produto;
+
+            Navigation.PushAsync(new Views.EditarProduto
+            {
+                BindingContext = p,
+            });
+        }
+        catch (Exception ex)
+        {
+            DisplayAlert("Ops", ex.Message, "Ok");
+        }
+    }
 }

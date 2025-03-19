@@ -44,9 +44,15 @@ namespace MauiAppMinhasCompras.Helpers
             return _conn.QueryAsync<Produto>(sql, query);
         }
 
+        public Task<int> ExecuteAsync(string query)
+        {
+            return _conn.ExecuteAsync(query);
+        }
+
         public async Task ResetAutoIncrement()
         {
-            await _conn.ExecuteAsync("UPDATE SQLITE_SEQUENCE SET SEQ = 0 WHERE NAME = 'Produto'");
+            await _conn.ExecuteAsync("DELETE FROM sqlite_sequence WHERE name='Produto'");
+            await _conn.ExecuteAsync("VACUUM");
         }
     }
 }

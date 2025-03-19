@@ -21,8 +21,6 @@ public partial class NovoProduto : ContentPage
                 Preco = string.IsNullOrWhiteSpace(txt_preco.Text) ? 0 : Convert.ToDouble(txt_preco.Text)
             };
 
-
-
             await App.Db.Insert(p);
 			await DisplayAlert("Sucesso!", "Resgistro Inserido", "OK!");
 
