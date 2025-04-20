@@ -14,20 +14,6 @@ public partial class ListaProduto : ContentPage
         lst_produtos.ItemsSource = lista;
     }
 
-    protected async override void OnAppearing()
-    {
-        try
-        {
-            lista.Clear();
-            List<Produto> tmp = await App.Db.GetAll();
-            tmp.ForEach(i => lista.Add(i));
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Ops", ex.Message, "OK");
-        }
-    }
-
     private void ToolbarItem_Clicked(object sender, EventArgs e)
     {
         try
@@ -133,4 +119,36 @@ public partial class ListaProduto : ContentPage
             lst_produtos.IsRefreshing = false;
         }
     }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        var produtos = await App.Db.ListaProdutos();
+        var categorias = produtos
+            .Select(p => p.Categoria)
+            .Distinct()
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .ToList();
+
+        picker_categoria.ItemsSource = categorias;
+        AtualizarLista(produtos);
+    }
+
+
+    private async void picker_categoria_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        string categoriaSelecionada = picker_categoria.SelectedItem.ToString();
+        var produtos = await App.Db.ListaProdutos(); // corrigido aqui
+        var filtrados = produtos.Where(p => p.Categoria == categoriaSelecionada).ToList();
+        AtualizarLista(filtrados);
+    }
+
+    private void AtualizarLista(List<Produto> produtos)
+    {
+        lista.Clear();
+        produtos.ForEach(p => lista.Add(p));
+    }
+
+
 }

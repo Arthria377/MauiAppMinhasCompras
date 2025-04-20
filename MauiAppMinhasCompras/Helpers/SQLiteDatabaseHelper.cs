@@ -45,5 +45,11 @@ namespace MauiAppMinhasCompras.Helpers
 
             return _conn.QueryAsync<Produto>(sql);
         }
+
+        public Task<List<Produto>> ListaProdutos()
+        {
+            return GetAll(); // ou aplicar filtro, se quiser
+        }
+
     } // Fecha classe SQLiteDatabaseHelper
 } // Fecha namespace MauiAppMinhasCompras.Helpers

@@ -22,7 +22,16 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     
+    
+    
     <StackLayout>
+        <Picker x:Name="picker_categoria"
+        Title="Filtrar por Categoria"
+        SelectedIndexChanged="picker_categoria_SelectedIndexChanged"
+        Margin="10,0">
+        </Picker>
+
+
         <SearchBar x:Name="txt_search"
                    Placeholder="Busca de Produtos"
                    TextChanged="txt_search_TextChanged">
